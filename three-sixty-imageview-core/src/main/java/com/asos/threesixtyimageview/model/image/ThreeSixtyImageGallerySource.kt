@@ -32,7 +32,8 @@ private const val DEFAULT_THUMBNAIL_PROPORTION = 4
 
 class ThreeSixtyImageGallerySource<T : ImageView>(private val context: Context,
                                                   private val imageBinder: ImageBinder<T>,
-                                                  width: Int) : AbstractThreeSixtyImageSource<T>(), ImageLoadedListener, ThumbnailLoadedListener, CoroutineScope {
+                                                  width: Int)
+    : AbstractThreeSixtyImageSource<T>(), ImageLoadedListener, ThumbnailLoadedListener, CoroutineScope {
 
 
     private val job = Job()
@@ -50,8 +51,10 @@ class ThreeSixtyImageGallerySource<T : ImageView>(private val context: Context,
         }
 
     var thumbnailProportionOfImageSize = DEFAULT_THUMBNAIL_PROPORTION
-    private val thumbnailWidth: Int = width / thumbnailProportionOfImageSize
+
     private val fullWidth: Int = width
+    private val thumbnailWidth: Int
+        get() = fullWidth / thumbnailProportionOfImageSize
 
     private var thumbnailSizeImageCount = 0
     private var imageBitmapsArray: Array<Bitmap?> = emptyArray()
@@ -98,9 +101,17 @@ class ThreeSixtyImageGallerySource<T : ImageView>(private val context: Context,
                 }
 
                 if (withFullWidth) {
-                    imageBinder.loadFullSizeImage(this@ThreeSixtyImageGallerySource.context, imageUrl, fullWidth, index, this@ThreeSixtyImageGallerySource)
+                    imageBinder.loadFullSizeImage(this@ThreeSixtyImageGallerySource.context,
+                            imageUrl,
+                            fullWidth,
+                            index,
+                            this@ThreeSixtyImageGallerySource)
                 } else {
-                    imageBinder.loadThumbnailImage(this@ThreeSixtyImageGallerySource.context, imageUrl, thumbnailWidth, index, this@ThreeSixtyImageGallerySource)
+                    imageBinder.loadThumbnailImage(this@ThreeSixtyImageGallerySource.context,
+                            imageUrl,
+                            thumbnailWidth,
+                            index,
+                            this@ThreeSixtyImageGallerySource)
                 }
             }
         }
