@@ -24,6 +24,7 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import com.asos.threesixtyimageview.model.image.ImageBinder
 import com.asos.threesixtyimageview.model.image.ThreeSixtyImageGallerySource
+import com.asos.threesixtyimageview.presenter.*
 import com.asos.threesixtyimageview.ui.OnFrameClickListener
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.demo_fragment.*
@@ -62,6 +63,7 @@ abstract class AbstractDemoFragment<T : ImageView> : Fragment() {
             }
         }
 
+        three_sixty_viewer.setFlingStrategy(CustomFlingStrategy())
     }
 
     private fun getScreenWidth(): Int = activity?.windowManager?.defaultDisplay?.let {
@@ -72,4 +74,22 @@ abstract class AbstractDemoFragment<T : ImageView> : Fragment() {
 
     protected abstract fun createImageBinder(): ImageBinder<T>
 
+}
+
+class CustomFlingStrategy(private val flingMinimumVelocityPercentage:Int = 5,
+                          private val flingMinNumberOfSpins:Int = 1,
+                          private val flingMaxNumberOfExtraSpins:Int = 4,
+                          private val flingBaseDelayTimeMillis:Int = 25,
+                          private val flingDelaySlowdownFactor:Double = 0.1) : FlingStrategy {
+    override fun getSpinDelayTime(imageIndex: Int, velocityPercentage: Int): Long = getFlingBaseDelay(velocityPercentage) + getSlowdownFactor(imageIndex)
+
+    override fun getNumberOfSpins(velocityPercentage: Int): Int = flingMinNumberOfSpins + ((flingMaxNumberOfExtraSpins * velocityPercentage) / 100)
+
+    override fun getFlingMinimumVelocityPercentage(): Int = flingMinimumVelocityPercentage
+
+    private fun getFlingBaseDelay(velocityPercentage: Int): Long = flingBaseDelayTimeMillis - getSpeedImprovementFromVelocity(velocityPercentage)
+
+    private fun getSlowdownFactor(imageIndex: Int): Long = (flingDelaySlowdownFactor * imageIndex).toLong()
+
+    private fun getSpeedImprovementFromVelocity(velocityPercentage: Int): Long = (20L * velocityPercentage) / 100L
 }
