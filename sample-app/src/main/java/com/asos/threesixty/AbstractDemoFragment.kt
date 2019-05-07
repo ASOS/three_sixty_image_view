@@ -24,13 +24,15 @@ import android.widget.ImageView
 import androidx.fragment.app.Fragment
 import com.asos.threesixtyimageview.model.image.ImageBinder
 import com.asos.threesixtyimageview.model.image.ThreeSixtyImageGallerySource
+import com.asos.threesixtyimageview.ui.OnFrameClickListener
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.demo_fragment.*
 
 
 /**
  * Base class common to all demo Fragments that extends using their own ImageBinder and ImageView types
  */
-abstract class AbstractDemoFragment<T:ImageView> : Fragment() {
+abstract class AbstractDemoFragment<T : ImageView> : Fragment() {
 
     private lateinit var source: ThreeSixtyImageGallerySource<T>
 
@@ -38,23 +40,36 @@ abstract class AbstractDemoFragment<T:ImageView> : Fragment() {
             inflater.inflate(R.layout.demo_fragment, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        source = ThreeSixtyImageGallerySource(context = view.context, imageBinder = createImageBinder(), width = getScreenWidth())
-            .apply {
-                thumbnailProportionOfImageSize = 3
-            }
-        with(source) {
+        source = ThreeSixtyImageGallerySource(
+                context = view.context,
+                imageBinder = createImageBinder(),
+                width = getScreenWidth()
+        ).apply {
+            thumbnailProportionOfImageSize = 3
             imageUrls = getSampleImageUrls()
             three_sixty_viewer.setImageSource(this)
             loadImages()
         }
+
+        // Register for clicks on the 360 View. Note that when flinging, first tap stops rotation, next tap calls this listener.
+        three_sixty_viewer.onFrameClickListener = object : OnFrameClickListener {
+            override fun onFrameClick(frameView: View) {
+                Snackbar.make(
+                        view,
+                        "Clicked on Image ${source.currentIndex + 1} of ${source.imageUrls.size}: ${source.currentImageUrl}",
+                        Snackbar.LENGTH_LONG
+                ).show()
+            }
+        }
+
     }
 
     private fun getScreenWidth(): Int = activity?.windowManager?.defaultDisplay?.let {
         val displayMetrics = DisplayMetrics()
         it.getMetrics(displayMetrics)
         displayMetrics.widthPixels
-    }?:0
+    } ?: 0
 
-    protected abstract fun createImageBinder():ImageBinder<T>
+    protected abstract fun createImageBinder(): ImageBinder<T>
 
 }
